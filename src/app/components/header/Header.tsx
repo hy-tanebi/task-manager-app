@@ -7,13 +7,13 @@ const Header = () => {
         <h1 className="text-4xl">タスク管理アプリ</h1>
         <nav className="flex gap-4 text-2xl">
           <li>
-            <Button title="Create" href="/" />
+            <Button title="Create" href="/create" />
           </li>
           <li>
-            <Button title="LogIn" href="/" />
+            <Button title="LogIn" href="/login" />
           </li>
           <li>
-            <Button title="SignUp" href="/" />
+            <Button title="SignUp" href="/signup" />
           </li>
         </nav>
       </div>
