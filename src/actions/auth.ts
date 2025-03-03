@@ -1,6 +1,6 @@
 "use server";
 
-import { SignupSchema } from "@/schemas";
+import { LoginSchema, SignupSchema } from "@/schemas";
 
 import { z } from "zod";
 import { createClient } from "../../utils/supabase/server";
@@ -44,6 +44,22 @@ export const signup = async (values: z.infer<typeof SignupSchema>) => {
     }
   } catch (err) {
     console.error(err);
+    return { error: "エラーが発生しました" };
+  }
+};
+
+// ログイン
+export const login = async (values: z.infer<typeof LoginSchema>) => {
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      ...values,
+    });
+    if (error) {
+      return { error: error.message };
+    }
+  } catch (error) {
+    console.log(error);
     return { error: "エラーが発生しました" };
   }
 };
