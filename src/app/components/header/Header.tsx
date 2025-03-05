@@ -5,6 +5,7 @@ import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../../utils/supabase/client";
 import Link from "next/link";
+import TaskCreateButton from "../task/TaskCreateButton";
 
 interface HeaderProps {
   user: User | null;
@@ -33,7 +34,8 @@ const Header = ({ user }: HeaderProps) => {
           {user ? (
             <>
               <li>
-                <Button title="Create" href="/create" />
+                <TaskCreateButton />
+                {/* <Button title="Create" href="/create" /> */}
               </li>
               <li>
                 <div className="cursor-pointer" onClick={handleLogout}>
