@@ -15,7 +15,8 @@ interface TaskCardProps {
 }
 
 const TaskCard = ({ blog }: TaskCardProps) => {
-  const { title, dueDate, priority, assignee, createdAt, url, urlAlias } = blog;
+  const { id, title, dueDate, priority, assignee, createdAt, url, urlAlias } =
+    blog;
 
   const parsedDueDate =
     typeof dueDate === "string" ? new Date(dueDate) : dueDate;
@@ -32,6 +33,24 @@ const TaskCard = ({ blog }: TaskCardProps) => {
   const isUrgent = daysRemaining >= 0 && daysRemaining <= 3; // 🔥 3日以内
   const isExpired = daysRemaining < 0; // 💣 期限切れ
 
+  const handleDelete = async () => {
+    if (!window.confirm("このタスクを削除しますか？")) return;
+
+    try {
+      const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+
+      if (!res.ok) {
+        throw new Error("削除に失敗しました");
+      }
+
+      alert("タスクが削除されました");
+      router.refresh(); // 一覧を更新
+    } catch (error) {
+      console.error("❌ 削除エラー:", error);
+      alert("削除に失敗しました");
+    }
+  };
+
   return (
     <div>
       <Card className="min-h-[270px]">
@@ -42,6 +61,7 @@ const TaskCard = ({ blog }: TaskCardProps) => {
               作成日：
               <span className="font-bold">{createDate}</span>
             </p>
+            <Link href={`/tasks/${id}`}>課題詳細</Link>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">

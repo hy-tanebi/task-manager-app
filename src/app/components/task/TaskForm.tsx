@@ -20,10 +20,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { createClient } from "../../../../utils/supabase/client"; // Supabaseクライアントのインポート
+// import { createClient } from "../../../../utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { TaskCardTypes } from "@/app/types/type";
 
 interface TaskFormProps {
+  initialData?: TaskCardTypes; // 既存データ（編集時のみ）
+  onSubmit: (values: z.infer<typeof formSchema>) => void; // 修正 // 作成 or 編集の処理を渡す
   onClose: () => void;
 }
 
@@ -37,65 +40,36 @@ const formSchema = z.object({
   urlAlias: z.string().optional(),
 });
 
-const TaskForm = ({ onClose }: TaskFormProps) => {
+const TaskForm = ({ initialData, onSubmit, onClose }: TaskFormProps) => {
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      dueDate: "",
-      priority: "低",
-      assignee: "",
-      content: "",
-      url: "",
-      urlAlias: "",
-    },
+    defaultValues: initialData
+      ? {
+          title: initialData.title,
+          dueDate:
+            initialData.dueDate instanceof Date
+              ? initialData.dueDate.toISOString().split("T")[0]
+              : initialData.dueDate || "",
+          priority: initialData.priority,
+          assignee: initialData.assignee,
+          content: initialData.content ?? undefined,
+          url: initialData.url ?? undefined,
+          urlAlias: initialData.urlAlias ?? undefined,
+        }
+      : {
+          title: "",
+          dueDate: "",
+          priority: "低",
+          assignee: "",
+          content: "",
+          url: "",
+          urlAlias: "",
+        },
   });
 
   const { handleSubmit, control } = form;
-
-  const supabase = createClient();
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log({ values });
-    try {
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data || !data.user) {
-        console.error("ユーザーがログインしていません");
-        return;
-      }
-      console.log("取得したユーザー情報:", data.user);
-      const userId = data.user.id;
-      const taskData = {
-        ...values,
-        userId,
-      };
-
-      if (!taskData.userId) {
-        console.error("ユーザーIDが取得できません");
-        return;
-      }
-
-      const { data: task, error: taskError } = await supabase
-        .from("Task")
-        .insert([taskData])
-        .single();
-      console.log({ task });
-      console.log({ taskError });
-      if (taskError) {
-        console.error("タスク作成エラー", taskError.message);
-      } else {
-        console.log("タスク作成成功", task);
-        onClose();
-      }
-
-      router.push("/");
-      router.refresh();
-    } catch (error) {
-      console.error("タスク作成エラー:", error);
-    }
-  };
 
   return (
     <div className="pt-4">
@@ -201,8 +175,7 @@ const TaskForm = ({ onClose }: TaskFormProps) => {
               </FormItem>
             )}
           />
-
-          <Button type="submit">作成</Button>
+          <Button type="submit">{initialData ? "更新" : "作成"}</Button>
         </form>
       </Form>
     </div>
