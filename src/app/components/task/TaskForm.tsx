@@ -21,6 +21,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createClient } from "../../../../utils/supabase/client"; // Supabaseクライアントのインポート
+import { useRouter } from "next/navigation";
 
 interface TaskFormProps {
   onClose: () => void;
@@ -31,36 +32,41 @@ const formSchema = z.object({
   dueDate: z.string().min(1, { message: "期日を入力してください" }),
   priority: z.string(),
   assignee: z.string().min(1, { message: "依頼者を入力してください" }),
+  content: z.string().optional(),
+  url: z.string().url({ message: "正しいURLを入力してください" }).optional(),
+  urlAlias: z.string().optional(),
 });
 
 const TaskForm = ({ onClose }: TaskFormProps) => {
+  const router = useRouter();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       dueDate: "",
-      priority: "low",
+      priority: "低",
       assignee: "",
+      content: "",
+      url: "",
+      urlAlias: "",
     },
   });
 
   const { handleSubmit, control } = form;
 
-  const supabase = createClient(); // supabaseインスタンスの作成
+  const supabase = createClient();
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log({ values });
     try {
-      // Supabase でユーザー情報を取得
       const { data, error } = await supabase.auth.getUser();
-
       if (error || !data || !data.user) {
         console.error("ユーザーがログインしていません");
         return;
       }
-
       console.log("取得したユーザー情報:", data.user);
       const userId = data.user.id;
-
       const taskData = {
         ...values,
         userId,
@@ -71,18 +77,21 @@ const TaskForm = ({ onClose }: TaskFormProps) => {
         return;
       }
 
-      // **JWT トークンを含めたリクエスト**
       const { data: task, error: taskError } = await supabase
         .from("Task")
-        .insert([taskData], { returning: "minimal" })
+        .insert([taskData])
         .single();
-
+      console.log({ task });
+      console.log({ taskError });
       if (taskError) {
         console.error("タスク作成エラー", taskError.message);
       } else {
         console.log("タスク作成成功", task);
         onClose();
       }
+
+      router.push("/");
+      router.refresh();
     } catch (error) {
       console.error("タスク作成エラー:", error);
     }
@@ -107,6 +116,32 @@ const TaskForm = ({ onClose }: TaskFormProps) => {
           />
           <FormField
             control={control}
+            name="url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>課題URL</FormLabel>
+                <FormControl>
+                  <Input placeholder="url" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="urlAlias"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>URLのエイリアス</FormLabel>
+                <FormControl>
+                  <Input placeholder="例: GitHubリポジトリ" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
             name="dueDate"
             render={({ field }) => (
               <FormItem>
@@ -124,21 +159,31 @@ const TaskForm = ({ onClose }: TaskFormProps) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>優先度</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="優先度" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="low">低</SelectItem>
-                    <SelectItem value="medium">中</SelectItem>
-                    <SelectItem value="high">高</SelectItem>
+                    <SelectItem value="低">低</SelectItem>
+                    <SelectItem value="中">中</SelectItem>
+                    <SelectItem value="高">高</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="content"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>備考</FormLabel>
+                <FormControl>
+                  <Input placeholder="" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

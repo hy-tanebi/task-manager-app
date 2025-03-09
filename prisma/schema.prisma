@@ -1,3 +1,9 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,24 +13,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(uuid()) @db.Uuid  // UUID型に統一
-  email     String   @unique
-  name      String?
-  password  String
-  tasks     Task[]
-}
+
+
+
+
 
 model Task {
   id          Int      @id @default(autoincrement())
-  title       String
-  dueDate     DateTime
-  priority    String
-  status      String   @default("in-progress")
-  assignee    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
-  userId      String   @db.Uuid  // UUID型に統一
-
-  user        User    @relation(fields: [userId], references: [id])
+  title       String   // タスクのタイトル
+  content     String?  // 自由入力欄
+  url         String?  // URL（実際のリンク）
+  urlAlias    String?  // 🔹 URLエイリアス（表示用の名前）
+  dueDate     DateTime // 期日
+  priority    String   // 優先度
+  status      String   @default("in-progress") // 進捗状況
+  assignee    String   // 依頼者
+  createdAt   DateTime @default(now())  // 作成日時
+  updatedAt   DateTime? @updatedAt
+  userId      String   // ユーザーID（どのユーザーがこのタスクを作成したか）
 }
