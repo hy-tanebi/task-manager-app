@@ -72,3 +72,41 @@ export async function PUT(
     return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { tasksId: string } }
+) {
+  const tasksId = parseInt(params.tasksId, 10);
+  console.log(`🟢 削除リクエスト受信: tasksId = ${tasksId}`);
+
+  if (isNaN(tasksId)) {
+    console.error("❌ 無効なタスクID:", params.tasksId);
+    return NextResponse.json({ error: "無効なタスクID" }, { status: 400 });
+  }
+
+  try {
+    const existingTask = await prisma.task.findUnique({
+      where: { id: tasksId },
+    });
+    if (!existingTask) {
+      console.warn(`⚠️ タスクが見つかりません: id = ${tasksId}`);
+      return NextResponse.json(
+        { error: "タスクが見つかりません" },
+        { status: 404 }
+      );
+    }
+
+    console.log(`🟢 タスク削除開始: id = ${tasksId}`);
+    await prisma.task.delete({ where: { id: tasksId } });
+
+    console.log("✅ タスク削除成功");
+    return NextResponse.json(
+      { message: "タスクが削除されました" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("❌ タスク削除エラー:", error);
+    return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+  }
+}

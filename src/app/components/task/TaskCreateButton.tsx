@@ -4,6 +4,7 @@ import Modal from "./Modal";
 import TaskForm from "./TaskForm";
 import { createClient } from "../../../../utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { sendSlackMessage } from "@/actions/send-slack-message-action"; // 🔹 Slack通知関数をインポート
 
 const TaskCreateButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,6 +42,10 @@ const TaskCreateButton = () => {
         console.error("タスク作成エラー:", taskError.message);
         return;
       }
+
+      // 🔹 Slack に通知を送信
+      const message = `📌 *新しいタスクが作成されました！*\n📝 *タイトル:* ${values.title}\n⏳ *期限:* ${values.dueDate}\n🔥 *優先度:* ${values.priority}\n👤 *担当者:* ${values.assignee}`;
+      await sendSlackMessage({ message });
 
       closeModal();
       router.refresh();

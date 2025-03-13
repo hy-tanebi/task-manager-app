@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -6,9 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import React from "react";
+import React, { useTransition } from "react";
 import { TaskCardTypes } from "../types/type";
 import Link from "next/link";
+import { deleteTask } from "@/actions/taskActions";
 
 interface TaskCardProps {
   blog: TaskCardTypes;
@@ -30,25 +33,23 @@ const TaskCard = ({ blog }: TaskCardProps) => {
   const daysRemaining = Math.ceil(
     (parsedDueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
   );
-  const isUrgent = daysRemaining >= 0 && daysRemaining <= 3; // 🔥 3日以内
-  const isExpired = daysRemaining < 0; // 💣 期限切れ
+  const isUrgent = daysRemaining >= 0 && daysRemaining <= 3;
+  const isExpired = daysRemaining < 0;
 
-  const handleDelete = async () => {
+  const [isPending, startTransition] = useTransition();
+
+  const handleDelete = () => {
     if (!window.confirm("このタスクを削除しますか？")) return;
 
-    try {
-      const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
-
-      if (!res.ok) {
-        throw new Error("削除に失敗しました");
+    startTransition(async () => {
+      const result = await deleteTask(id);
+      if (result.success) {
+        alert("タスクが削除されました");
+        location.reload();
+      } else {
+        alert(result.error);
       }
-
-      alert("タスクが削除されました");
-      router.refresh(); // 一覧を更新
-    } catch (error) {
-      console.error("❌ 削除エラー:", error);
-      alert("削除に失敗しました");
-    }
+    });
   };
 
   return (
@@ -99,7 +100,17 @@ const TaskCard = ({ blog }: TaskCardProps) => {
             )}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between"></CardFooter>
+        <CardFooter className="flex justify-between">
+          <button
+            onClick={handleDelete}
+            disabled={isPending}
+            className={`px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition ${
+              isPending ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {isPending ? "削除中..." : "削除"}
+          </button>
+        </CardFooter>
       </Card>
     </div>
   );
