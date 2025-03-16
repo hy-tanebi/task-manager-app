@@ -6,12 +6,19 @@ import { createClient } from "../../../../utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { sendSlackMessage } from "@/actions/send-slack-message-action";
 
-const TaskCreateButton = () => {
+// ✅ `disabled` プロパティを受け取るためのインターフェース
+interface TaskCreateButtonProps {
+  disabled?: boolean;
+}
+
+const TaskCreateButton: React.FC<TaskCreateButtonProps> = ({ disabled }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
-  const openModal = () => setIsModalOpen(true);
+  const openModal = () => {
+    if (!disabled) setIsModalOpen(true);
+  };
   const closeModal = () => setIsModalOpen(false);
 
   const handleCreateTask = async (values: {
@@ -72,16 +79,22 @@ const TaskCreateButton = () => {
 
   return (
     <div>
+      {/* 🔹 `disabled` の場合、ボタンを押せないようにする */}
       <button
         onClick={openModal}
-        className="bg-white text-black-400 rounded py-4 px-4 hover:opacity-80 duration-300"
+        className={`bg-white text-black py-2 px-4 rounded hover:opacity-80 duration-300 ${
+          disabled ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+        disabled={disabled}
       >
         Create
       </button>
-      <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <h2 className="text-xl font-bold">タスク作成</h2>
-        <TaskForm onClose={closeModal} onSubmit={handleCreateTask} />
-      </Modal>
+      {isModalOpen && (
+        <Modal isOpen={isModalOpen} onClose={closeModal}>
+          <h2 className="text-xl font-bold">タスク作成</h2>
+          <TaskForm onClose={closeModal} onSubmit={handleCreateTask} />
+        </Modal>
+      )}
     </div>
   );
 };

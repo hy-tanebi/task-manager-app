@@ -83,7 +83,7 @@ const TaskDetail = ({ detailData }: TaskDetailProps) => {
       ) : (
         <>
           <h1 className="text-4xl">{title}</h1>
-          <div>
+          <div className="pt-4">
             <span className="font-bold">課題URL</span>：
             {url && (
               <Link
@@ -95,13 +95,13 @@ const TaskDetail = ({ detailData }: TaskDetailProps) => {
               </Link>
             )}
           </div>
-          <p>
+          <p className="pt-2">
             <span className="font-bold">優先度</span>：{priority}
           </p>
-          <p>
+          <p className="pt-2">
             <span className="font-bold">作成日</span>：{createDate}
           </p>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pt-2">
             {isExpired ? (
               <p className="text-gray-500 font-bold">
                 期日：{timeDate}{" "}
@@ -116,10 +116,10 @@ const TaskDetail = ({ detailData }: TaskDetailProps) => {
               <p className="font-bold">期日：{timeDate}</p>
             )}
           </div>
-          <p>
+          <p className="pt-4">
             <span className="font-bold">依頼者</span>：{assignee}
           </p>
-          <p>
+          <p className="pt-4">
             <span className="font-bold">詳細</span>：{content}
           </p>
 

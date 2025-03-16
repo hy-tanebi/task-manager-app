@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import Button from "../Button";
 import { LogOut } from "lucide-react";
@@ -7,6 +8,7 @@ import { createClient } from "../../../../utils/supabase/client";
 import Link from "next/link";
 import TaskCreateButton from "../task/TaskCreateButton";
 import SlackLoginButton from "../SlackLoginButton";
+import { fetchSlackStatus } from "@/actions/slackAuthService";
 
 interface HeaderProps {
   user: User | null;
@@ -15,6 +17,21 @@ interface HeaderProps {
 const Header = ({ user }: HeaderProps) => {
   const router = useRouter();
   const supabase = createClient();
+  const [isSlackConnected, setIsSlackConnected] = useState<boolean | null>(
+    null
+  );
+
+  // 🔹 Slack 連携状態を取得
+  useEffect(() => {
+    if (!user) return;
+
+    const checkSlackStatus = async () => {
+      const connected = await fetchSlackStatus(user.id);
+      setIsSlackConnected(connected);
+    };
+
+    checkSlackStatus();
+  }, [user]);
 
   const handleLogout = async () => {
     if (!window.confirm("ログアウトしますが、宜しいですか？")) {
@@ -35,10 +52,14 @@ const Header = ({ user }: HeaderProps) => {
           {user ? (
             <>
               <li>
-                <SlackLoginButton userId={user.id} />
+                {/* ✅ Slack 連携状態が変わるたびに `setIsSlackConnected` を更新 */}
+                <SlackLoginButton
+                  userId={user.id}
+                  onStatusChange={setIsSlackConnected}
+                />
               </li>
               <li>
-                <TaskCreateButton />
+                <TaskCreateButton disabled={!isSlackConnected} />
               </li>
               <li>
                 <div className="cursor-pointer" onClick={handleLogout}>

@@ -58,11 +58,13 @@ const TaskCard = ({ blog }: TaskCardProps) => {
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription>
-            <p className="pt-2">
+            <p className="pt-2 pb-4">
               作成日：
               <span className="font-bold">{createDate}</span>
             </p>
-            <Link href={`/tasks/${id}`}>課題詳細</Link>
+            <p className="hover:opacity-80 duration-300">
+              <Link href={`/tasks/${id}`}>課題詳細はこちらをクリック</Link>
+            </p>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">

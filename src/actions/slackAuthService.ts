@@ -7,10 +7,8 @@ const supabase = createClient();
  * @returns 連携済みなら true, 未連携なら false
  */
 export const fetchSlackStatus = async (userId: string): Promise<boolean> => {
-  if (!userId) {
-    console.log("fetchSlackStatus: userIdが未設定");
-    return false;
-  }
+  if (!userId) return false;
+
   try {
     const { data, error } = await supabase
       .from("SlackAuth")
@@ -20,15 +18,15 @@ export const fetchSlackStatus = async (userId: string): Promise<boolean> => {
 
     if (error) {
       console.error("fetchSlackStatus: Supabaseエラー", error.message);
+      return false;
     }
 
     return !!data;
   } catch (error) {
-    console.error("fetchSlackStatus: 予期せぬエラー");
+    console.error("fetchSlackStatus: 予期せぬエラー", error);
     return false;
   }
 };
-
 /**
  * Slack 連携を解除する
  * @param userId - Supabase のユーザー ID

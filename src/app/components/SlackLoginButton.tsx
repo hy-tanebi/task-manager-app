@@ -1,11 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
-import {
-  fetchSlackStatus,
-  disconnectSlack,
-} from "../../actions/slackAuthService";
+import { fetchSlackStatus, disconnectSlack } from "@/actions/slackAuthService";
 
-const SlackLoginButton = ({ userId }: { userId: string }) => {
+const SlackLoginButton = ({
+  userId,
+  onStatusChange, // ✅ 状態変更のコールバックを追加
+}: {
+  userId: string;
+  onStatusChange: (status: boolean) => void;
+}) => {
   const [isSlackConnected, setIsSlackConnected] = useState<boolean | null>(
     null
   );
@@ -14,12 +17,16 @@ const SlackLoginButton = ({ userId }: { userId: string }) => {
 
   // 🔹 初回レンダリング時に Slack 連携状態を取得
   useEffect(() => {
+    if (!userId) return;
+
     const checkSlackConnection = async () => {
       const isConnected = await fetchSlackStatus(userId);
       setIsSlackConnected(isConnected);
+      onStatusChange(isConnected); // ✅ 親コンポーネントにも連携状態を伝える
     };
+
     checkSlackConnection();
-  }, [userId]);
+  }, [userId, onStatusChange]);
 
   // 🔹 Slack 連携ボタンを押したときの処理
   const handleSlackLogin = () => {
@@ -40,30 +47,26 @@ const SlackLoginButton = ({ userId }: { userId: string }) => {
     const isDisconnected = await disconnectSlack(userId);
     if (isDisconnected) {
       setIsSlackConnected(false);
+      onStatusChange(false); // ✅ Slack 連携解除後に `Header.tsx` にも伝える
     } else {
       console.error("Slack連携解除エラー");
     }
   };
 
-  // 🔹 ローディング中の表示
-  if (isSlackConnected === null) {
-    return <span className="text-gray-500">Loading...</span>;
-  }
-
   return (
     <div>
       {!isSlackConnected ? (
         <button
-          className="bg-white text-black-400 rounded py-4 px-4 hover:opacity-80 duration-300"
+          className="bg-white text-black py-2 px-4 rounded hover:opacity-80 duration-300"
           onClick={handleSlackLogin}
         >
           Slack連携
         </button>
       ) : (
         <div className="flex items-center gap-2">
-          <span className="text-sm text-black-400">Slack連携済み</span>
+          <span className="text-sm text-black">Slack連携済み ✅</span>
           <button
-            className="bg-white text-black-400 rounded py-4 px-4 hover:opacity-80 duration-300"
+            className="bg-white text-black py-2 px-4 rounded hover:opacity-80 duration-300"
             onClick={handleSlackLogout}
           >
             解除
