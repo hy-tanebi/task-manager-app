@@ -54,16 +54,16 @@ const SlackLoginButton = ({ userId }: { userId: string }) => {
     <div>
       {!isSlackConnected ? (
         <button
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="bg-white text-black-400 rounded py-4 px-4 hover:opacity-80 duration-300"
           onClick={handleSlackLogin}
         >
           Slack連携
         </button>
       ) : (
         <div className="flex items-center gap-2">
-          <span className="text-green-500">Slack連携済み</span>
+          <span className="text-sm text-black-400">Slack連携済み</span>
           <button
-            className="text-red-500 border px-2 py-1 rounded"
+            className="bg-white text-black-400 rounded py-4 px-4 hover:opacity-80 duration-300"
             onClick={handleSlackLogout}
           >
             解除
