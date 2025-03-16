@@ -28,10 +28,10 @@ const Header = ({ user }: HeaderProps) => {
   return (
     <header>
       <div className="grid lg:grid-cols-2 bg-red-300 px-2 py-4 place-items-center">
-        <h1 className="text-4xl">
-          <Link href={"/"}>タスク管理アプリ</Link>
+        <h1 className="text-4xl hover:opacity-45 duration-300">
+          <Link href={"/"}>TaskApp</Link>
         </h1>
-        <nav className="flex gap-4 text-2xl">
+        <nav className="flex gap-4 text-2xl pt-4 lg:pt-0">
           {user ? (
             <>
               <li>

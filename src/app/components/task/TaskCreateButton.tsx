@@ -72,7 +72,10 @@ const TaskCreateButton = () => {
 
   return (
     <div>
-      <button onClick={openModal} className="btn btn-primary">
+      <button
+        onClick={openModal}
+        className="bg-white text-black-400 rounded py-4 px-4 hover:opacity-80 duration-300"
+      >
         Create
       </button>
       <Modal isOpen={isModalOpen} onClose={closeModal}>
