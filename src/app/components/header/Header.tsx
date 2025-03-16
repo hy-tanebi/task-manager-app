@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "../../../../utils/supabase/client";
 import Link from "next/link";
 import TaskCreateButton from "../task/TaskCreateButton";
+import SlackLoginButton from "../SlackLoginButton";
 
 interface HeaderProps {
   user: User | null;
@@ -34,8 +35,10 @@ const Header = ({ user }: HeaderProps) => {
           {user ? (
             <>
               <li>
+                <SlackLoginButton userId={user.id} />
+              </li>
+              <li>
                 <TaskCreateButton />
-                {/* <Button title="Create" href="/create" /> */}
               </li>
               <li>
                 <div className="cursor-pointer" onClick={handleLogout}>

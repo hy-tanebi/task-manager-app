@@ -4,7 +4,7 @@ import Modal from "./Modal";
 import TaskForm from "./TaskForm";
 import { createClient } from "../../../../utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { sendSlackMessage } from "@/actions/send-slack-message-action"; // 🔹 Slack通知関数をインポート
+import { sendSlackMessage } from "@/actions/send-slack-message-action";
 
 const TaskCreateButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,9 +30,25 @@ const TaskCreateButton = () => {
         return;
       }
 
+      const userId = data.user.id;
+
+      // ✅ Supabase の `userId` から `slackUserId` を取得
+      const { data: slackData, error: slackError } = await supabase
+        .from("SlackAuth")
+        .select("slackUserId")
+        .eq("userId", userId)
+        .single();
+
+      if (slackError || !slackData?.slackUserId) {
+        console.error("Slack userId が見つかりません");
+        return;
+      }
+
+      const slackUserId = slackData.slackUserId;
+
       const taskData = {
         ...values,
-        userId: data.user.id,
+        userId,
       };
 
       const { error: taskError } = await supabase
@@ -43,9 +59,9 @@ const TaskCreateButton = () => {
         return;
       }
 
-      // 🔹 Slack に通知を送信
+      // ✅ Slack に通知を送信する
       const message = `📌 *新しいタスクが作成されました！*\n📝 *タイトル:* ${values.title}\n⏳ *期限:* ${values.dueDate}\n🔥 *優先度:* ${values.priority}\n👤 *担当者:* ${values.assignee}`;
-      await sendSlackMessage({ message });
+      await sendSlackMessage({ userId: slackUserId, message });
 
       closeModal();
       router.refresh();
