@@ -20,14 +20,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-// import { createClient } from "../../../../utils/supabase/client";
-import { useRouter } from "next/navigation";
 import { TaskCardTypes } from "@/app/types/type";
 
 interface TaskFormProps {
   initialData?: TaskCardTypes; // 既存データ（編集時のみ）
   onSubmit: (values: z.infer<typeof formSchema>) => void; // 修正 // 作成 or 編集の処理を渡す
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 const formSchema = z.object({
@@ -40,9 +38,7 @@ const formSchema = z.object({
   urlAlias: z.string().optional(),
 });
 
-const TaskForm = ({ initialData, onSubmit, onClose }: TaskFormProps) => {
-  const router = useRouter();
-
+const TaskForm = ({ initialData, onSubmit }: TaskFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData
