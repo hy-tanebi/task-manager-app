@@ -14,7 +14,7 @@ export const fetchSlackStatus = async (userId: string): Promise<boolean> => {
       .from("SlackAuth")
       .select("id")
       .eq("userId", userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("fetchSlackStatus: Supabaseエラー", error.message);
