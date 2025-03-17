@@ -24,7 +24,8 @@ export async function GET(
 ) {
   console.log(`🟢 APIリクエスト: tasksId = ${params.tasksId}`);
 
-  const tasksId = parseInt(params.tasksId, 10);
+  // 文字列の tasksId を数値に変換
+  const tasksId = Number(params.tasksId);
   if (isNaN(tasksId)) {
     console.error("❌ 無効なタスクID:", params.tasksId);
     return NextResponse.json({ error: "無効なタスクID" }, { status: 400 });
@@ -34,7 +35,7 @@ export async function GET(
     console.log(`🔍 データ取得開始: id = ${tasksId}`);
 
     const taskDetailData = await prisma.task.findUnique({
-      where: { id: tasksId },
+      where: { id: tasksId }, // ここで number 型を渡す
     });
 
     if (!taskDetailData) {
