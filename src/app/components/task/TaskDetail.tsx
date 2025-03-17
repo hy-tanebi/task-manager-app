@@ -13,6 +13,7 @@ interface TaskDetailProps {
 const TaskDetail = ({ detailData }: TaskDetailProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
+  console.log("🟢 detailData の中身:", detailData);
 
   if (!detailData) {
     return (

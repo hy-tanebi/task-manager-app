@@ -1,20 +1,3 @@
-// import prisma from "@/lib/prismaClient";
-// import { NextResponse } from "next/server";
-
-// export async function GET(
-//   req: Request,
-//   { params }: { params: { tasksId: string } }
-// ) {
-//   const tasksId = params.tasksId;
-//   const taskDetailData = await prisma.task.findUnique({
-//     where: {
-//       id: parseInt(tasksId),
-//     },
-//   });
-
-//   return NextResponse.json(taskDetailData);
-// }
-
 import prisma from "@/lib/prismaClient";
 import { NextResponse } from "next/server";
 

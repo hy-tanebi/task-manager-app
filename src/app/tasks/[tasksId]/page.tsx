@@ -1,9 +1,13 @@
 import TaskDetail from "@/app/components/task/TaskDetail";
 import { TaskCardTypes } from "@/app/types/type";
+
 async function getDetailPage(id: number): Promise<TaskCardTypes | null> {
-  const res = await fetch(`http://localhost:3000/api/tasks/${id}`, {
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/tasks/${id}`,
+    {
+      cache: "no-store",
+    }
+  );
 
   if (!res.ok) {
     console.error(`❌ APIエラー: ${res.status} - ${res.statusText}`);
