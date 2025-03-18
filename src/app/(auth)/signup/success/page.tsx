@@ -2,7 +2,7 @@ const SignupSuccessPage = () => {
   return (
     <div className="w-[500px] bg-white p-5 rounded-xl border">
       <div className="text-primary text-xl font-bold text-center border-b border-black pb-5 mb-5 mt-3">
-        アカウント本登録メール送信しましたよーーー
+        アカウント本登録メール送信しました
       </div>
 
       <div className="text-sm">
