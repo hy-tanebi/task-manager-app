@@ -55,13 +55,8 @@ Next.js、Supabase、Prisma を使用し、**認証機能・CRUD 操作・Slack 
 ---
 
 ## **データベース設計**
-### **1. `users` テーブル**
-| カラム名  | 型       | 説明 |
-|-----------|---------|------|
-| `id` | UUID | ユーザーの一意 ID（Supabase Auth） |
-| `email` | TEXT | ユーザーのメールアドレス |
 
-### **2. `tasks` テーブル**
+### **1. `task` テーブル**
 | カラム名  | 型       | 説明 |
 |-----------|---------|------|
 | `id` | SERIAL | タスクの一意 ID |
@@ -70,16 +65,24 @@ Next.js、Supabase、Prisma を使用し、**認証機能・CRUD 操作・Slack 
 | `priority` | TEXT | 優先度（低/中/高） |
 | `status` | TEXT | ステータス（未着手/進行中/完了） |
 | `assignee` | TEXT | 担当者 |
+| `createdAt` | TIMESTAMP | 作成日時 |
+| `updatedAt` | TIMESTAMP | 更新日時 |
+| `userId` | UUID | タスクを作成したユーザーの ID |
 | `content` | TEXT | タスクの詳細 |
 | `url` | TEXT | 関連 URL |
-| `userId` | UUID | タスクを作成したユーザーの ID |
+| `urlAlias` | TEXT | URL のエイリアス |
 
-### **3. `SlackAuth` テーブル**
-| カラム名  | 型       | 説明 |
-|-----------|---------|------|
-| `id` | SERIAL | 一意 ID |
-| `userId` | UUID | Supabase Auth の `userId` |
-| `slackUserId` | TEXT | Slack のユーザー ID |
+
+### **2. `SlackAuth` テーブル**
+| カラム名      | 型       | 説明 |
+|--------------|---------|------|
+| `id`         | UUID    | 一意 ID |
+| `accessToken` | TEXT    | Slack のアクセストークン |
+| `createdAt`  | TIMESTAMP | 作成日時 |
+| `slackUserId` | TEXT    | Slack のユーザー ID |
+| `updatedAt`  | TIMESTAMP | 更新日時 |
+| `workspaceId` | TEXT    | ワークスペースの ID |
+| `userId`     | UUID    | Supabase Auth の `userId` |
 
 ---
 
@@ -96,7 +99,7 @@ Next.js、Supabase、Prisma を使用し、**認証機能・CRUD 操作・Slack 
 
 ### **3. タスクの作成**
 1. `Create` ボタンを押す（**Slack 連携がない場合は作成不可**）
-2. フォーム入力（タイトル・期日・担当者など）
+2. フォーム入力（タイトル・期日・担当者など）zodでレギュレーションの設定有
 3. **タスクが DB に保存され、Slack に通知が送信される**
 4. トップページに新規タスクが追加される
 5. **課題詳細はこちらをクリック** をクリックすることで詳細ページへ遷移
