@@ -54,13 +54,16 @@ const TaskDetail = ({ detailData }: TaskDetailProps) => {
   // 🔄 更新処理
   const handleUpdate = async (updatedTask: Partial<TaskCardTypes>) => {
     try {
-      const res = await fetch(`/api/tasks/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedTask),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/tasks/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedTask),
+        }
+      );
 
       if (!res.ok) {
         throw new Error("更新に失敗しました");
