@@ -1,11 +1,32 @@
 import prisma from "@/lib/prismaClient";
 import { NextResponse } from "next/server";
+import { createClient } from "../../../../../utils/supabase/server";
 
 export async function GET(
   req: Request,
   { params }: { params: { tasksId: string } }
 ) {
   console.log(`🟢 APIリクエスト: tasksId = ${params.tasksId}`);
+
+  const supabase = createClient();
+  const authHeader = req.headers.get("Authorization");
+
+  if (!authHeader) {
+    console.error("❌ 認証エラー: Authorization ヘッダーがありません");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const token = authHeader.split(" ")[1];
+  console.log("🟢 受信したトークン:", token);
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data?.user) {
+    console.error("❌ 認証エラー: ユーザーがログインしていません");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userId = data.user.id;
+  console.log(`🟢 認証ユーザー: ${userId}`);
 
   const tasksId = parseInt(params.tasksId, 10);
   if (isNaN(tasksId)) {
@@ -17,7 +38,7 @@ export async function GET(
     console.log(`🔍 データ取得開始: id = ${tasksId}`);
 
     const taskDetailData = await prisma.task.findUnique({
-      where: { id: tasksId },
+      where: { id: tasksId, userId }, // ✅ ユーザーごとに取得
     });
 
     if (!taskDetailData) {
@@ -35,17 +56,24 @@ export async function GET(
     return NextResponse.json({ error: "データ取得エラー" }, { status: 500 });
   }
 }
-
 export async function PUT(
   req: Request,
   { params }: { params: { tasksId: string } }
 ) {
-  try {
-    const tasksId = parseInt(params.tasksId);
-    const updatedData = await req.json();
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data?.user) {
+    return NextResponse.json({ error: "未認証のユーザー" }, { status: 401 });
+  }
 
+  const userId = data.user.id;
+  const tasksId = parseInt(params.tasksId, 10);
+  const updatedData = await req.json();
+
+  try {
+    // ✅ ユーザーのタスクのみ更新
     const updatedTask = await prisma.task.update({
-      where: { id: tasksId },
+      where: { id: tasksId, userId }, // ✅ ユーザーIDでフィルタ
       data: updatedData,
     });
 
@@ -60,8 +88,18 @@ export async function DELETE(
   req: Request,
   { params }: { params: { tasksId: string } }
 ) {
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data?.user) {
+    return NextResponse.json({ error: "未認証のユーザー" }, { status: 401 });
+  }
+
+  const userId = data.user.id;
   const tasksId = parseInt(params.tasksId, 10);
-  console.log(`🟢 削除リクエスト受信: tasksId = ${tasksId}`);
+
+  console.log(
+    `🟢 削除リクエスト受信: tasksId = ${tasksId}, userId = ${userId}`
+  );
 
   if (isNaN(tasksId)) {
     console.error("❌ 無効なタスクID:", params.tasksId);
@@ -69,9 +107,11 @@ export async function DELETE(
   }
 
   try {
+    // ✅ 自分のタスクのみ削除できるようにする
     const existingTask = await prisma.task.findUnique({
-      where: { id: tasksId },
+      where: { id: tasksId, userId }, // ✅ ユーザーIDでフィルタ
     });
+
     if (!existingTask) {
       console.warn(`⚠️ タスクが見つかりません: id = ${tasksId}`);
       return NextResponse.json(

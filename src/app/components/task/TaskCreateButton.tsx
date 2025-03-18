@@ -44,7 +44,7 @@ const TaskCreateButton: React.FC<TaskCreateButtonProps> = ({ disabled }) => {
         .from("SlackAuth")
         .select("slackUserId")
         .eq("userId", userId)
-        .single();
+        .maybeSingle();
 
       if (slackError || !slackData?.slackUserId) {
         console.error("Slack userId が見つかりません");
