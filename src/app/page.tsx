@@ -6,12 +6,31 @@ import TaskCardList from "./components/TaskCardList";
 export default async function Home() {
   const supabase = createClient();
 
-  // 🔹 ログインユーザーを取得
-  const { data: user, error: userError } = await supabase.auth.getUser();
-  if (userError || !user?.user) {
-    return <p className="text-center">ログインしてください</p>;
+  // 🔹 セッションを取得
+  let { data: session } = await supabase.auth.getSession();
+  const { error: sessionError } = await supabase.auth.getSession(); // error だけを const にする
+
+  if (sessionError) {
+    console.error("⚠️ セッション取得エラー:", sessionError.message);
   }
-  const userId = user.user.id;
+
+  // 🔹 セッションが無い場合、リフレッシュを試す
+  if (!session || !session.session) {
+    console.log("⚠️ セッションなし → リフレッシュ試行");
+
+    const { data: refreshedSession, error: refreshError } =
+      await supabase.auth.refreshSession();
+
+    if (refreshError) {
+      console.error("🔴 セッションリフレッシュエラー:", refreshError.message);
+      return <p className="text-center">ログインしてください</p>;
+    } else {
+      console.log("✅ セッションリフレッシュ成功:", refreshedSession);
+      session = refreshedSession; // 🔹 ここで再代入
+    }
+  }
+
+  const userId = session.session?.user.id;
 
   // 🔹 ユーザーごとのタスクを取得
   const { data: blogData, error } = await supabase

@@ -10,12 +10,12 @@ export const signup = async (values: z.infer<typeof SignupSchema>) => {
   try {
     const supabase = createClient();
 
-    // アカウント作成
     const { data, error: signupError } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/signup/verify`,
+        // emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/signup/verify`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
       },
     });
 

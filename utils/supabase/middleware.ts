@@ -2,9 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  let supabaseResponse = NextResponse.next();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,35 +13,46 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value);
           });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
+          supabaseResponse = NextResponse.next();
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(name, value, options);
+          });
         },
       },
     }
   );
 
-  // 必要に応じてリダイレクトなどの処理を行う
-  // const {
-  //   data: { user },
-  // } = await supabase.auth.getUser()
+  try {
+    // ✅ セッションを取得
+    const { data: session, error: sessionError } =
+      await supabase.auth.getSession();
 
-  // if (
-  //   !user &&
-  //   !request.nextUrl.pathname.startsWith("/login") &&
-  //   !request.nextUrl.pathname.startsWith("/signup")
-  // ) {
-  //   const url = request.nextUrl.clone()
-  //   url.pathname = "/login"
+    console.log("🟢 セッション情報:", session);
+    console.log("🟡 クッキー情報:", request.cookies.getAll());
 
-  //   return NextResponse.redirect(url)
-  // }
+    if (sessionError) {
+      console.error("🔴 セッション取得エラー:", sessionError.message);
+    }
+
+    // ✅ セッションが無い場合、リフレッシュ
+    if (!session || !session.session) {
+      console.log("⚠️ セッションなし → リフレッシュ試行");
+
+      const { data: refreshData, error: refreshError } =
+        await supabase.auth.refreshSession();
+
+      if (refreshError) {
+        console.error("🔴 セッションリフレッシュエラー:", refreshError.message);
+      } else {
+        console.log("✅ セッションリフレッシュ成功:", refreshData);
+      }
+    }
+  } catch (err) {
+    console.error("🔴 Middleware エラー:", err);
+  }
 
   return supabaseResponse;
 }

@@ -23,7 +23,7 @@ const SignupVerifyPage = () => {
       </div>
 
       <Button asChild className="w-full">
-        <Link href="/">トップページ</Link>
+        <Link href="login">トップページ</Link>
       </Button>
     </div>
   );
