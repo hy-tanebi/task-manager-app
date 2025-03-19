@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "./components/header/Header";
 import { createClient } from "../../utils/supabase/server";
 import ToastProvider from "./components/providers/ToastProvider";
+import { redirect } from "next/navigation";
 
 const geistSans = localFont({
   src: "/fonts/GeistVF.woff",
@@ -27,8 +28,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const supabase = createClient();
-  const { data } = await supabase.auth.getUser();
-  const user = data?.user;
+  const { data: sessionData } = await supabase.auth.getSession();
+
+  // ✅ 未認証ならログインページへリダイレクト
+  if (!sessionData.session) {
+    redirect("/login");
+  }
 
   return (
     <html lang="js">
@@ -36,7 +41,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ToastProvider />
-        <Header user={user} />
+        <Header user={sessionData.session?.user} />
         {children}
       </body>
     </html>

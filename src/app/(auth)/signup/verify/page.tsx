@@ -4,13 +4,22 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
+import { createClient } from "../../../../../utils/supabase/client";
 
 const SignupVerifyPage = () => {
   const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
-    router.refresh();
-  }, [router]);
+    const checkAuth = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        router.push("/login"); // 🔹 未認証ならログインページへ
+      }
+    };
+
+    checkAuth();
+  }, [router, supabase]);
 
   return (
     <div className="w-[500px] bg-white p-5 rounded-xl border">

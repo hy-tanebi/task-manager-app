@@ -22,19 +22,19 @@ import {
 import FormError from "./FormError";
 import { SignupSchema } from "@/schemas";
 import { signup } from "@/actions/auth";
+import { createClient } from "../../../../utils/supabase/client";
 
 // アカウント登録
 const Signup = () => {
   const router = useRouter();
+  const supabase = createClient();
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
   const [passwordVisibility, setPasswordVisibility] = useState(false);
 
   // フォームの状態
   const form = useForm<z.infer<typeof SignupSchema>>({
-    // 入力値の検証
     resolver: zodResolver(SignupSchema),
-    // 初期値
     defaultValues: {
       name: "",
       email: "",
@@ -48,18 +48,28 @@ const Signup = () => {
 
     startTransition(async () => {
       try {
-        const res = await signup({
-          ...values,
-        });
+        const res = await signup(values);
 
         if (res?.error) {
           setError(res.error);
           return;
         }
 
-        toast.success("アカウントを登録しました");
-        router.push("/signup/success");
-        router.refresh();
+        toast.success("アカウントを登録しました。メールを確認してください。");
+
+        // 🔹 メール認証後に自動ログイン
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email: values.email,
+          password: values.password,
+        });
+
+        if (loginError) {
+          setError("ログインに失敗しました。");
+          return;
+        }
+
+        // 🔹 本番環境の URL を考慮してリダイレクト
+        router.push(`${process.env.NEXT_PUBLIC_APP_URL}/signup/verify`);
       } catch (error) {
         console.error(error);
         setError("アカウント登録に失敗しました");

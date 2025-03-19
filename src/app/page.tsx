@@ -2,32 +2,34 @@ import { Suspense } from "react";
 import { createClient } from "../../utils/supabase/server";
 import Loading from "./loading";
 import TaskCardList from "./components/TaskCardList";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const supabase = createClient();
 
-  // 🔹 ログインユーザーを取得
-  const { data: user, error: userError } = await supabase.auth.getUser();
-  if (userError || !user?.user) {
-    return <p className="text-center">ログインしてください</p>;
+  // ✅ ログインユーザーのセッション情報を取得
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.user) {
+    redirect("/login"); // 🔹 未認証ならログインページへ
   }
-  const userId = user.user.id;
 
-  // 🔹 ユーザーごとのタスクを取得
-  const { data: blogData, error } = await supabase
+  const userId = sessionData.session.user.id;
+
+  // ✅ ログインユーザーのタスクを取得
+  const { data: taskData, error } = await supabase
     .from("Task")
     .select()
     .eq("userId", userId) // 🔹 ログインユーザーのタスクのみ取得
     .order("createdAt");
 
-  if (!blogData || error) {
+  if (!taskData || error) {
     return <p className="text-center">タスクがありません</p>;
   }
 
   return (
     <Suspense fallback={<Loading />}>
-      <div className="">
-        <TaskCardList blogData={blogData} />
+      <div>
+        <TaskCardList blogData={taskData} />
       </div>
     </Suspense>
   );
