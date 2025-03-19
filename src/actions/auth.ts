@@ -1,6 +1,7 @@
 "use server";
 
 import { LoginSchema, SignupSchema } from "@/schemas";
+
 import { z } from "zod";
 import { createClient } from "../../utils/supabase/server";
 
@@ -18,39 +19,31 @@ export const signup = async (values: z.infer<typeof SignupSchema>) => {
       },
     });
 
-    if (signupError) {
-      return { error: signupError.message };
+    if (data && data.user) {
+      if (data.user.identities && data.user.identities.length > 0) {
+        console.log("アカウントを作成しました");
+      } else {
+        return {
+          error:
+            "このメールアドレスは既に登録されています。他のメールアドレスを使用して、アカウントを作成してください",
+        };
+      }
+    } else {
+      return { error: signupError?.message };
     }
 
-    if (!data.user) {
-      return { error: "ユーザーが作成されませんでした" };
-    }
-
-    console.log("🟢 アカウント作成成功:", data.user.email);
-
-    // ✅ 認証セッションを最新化
-    await supabase.auth.refreshSession();
-
-    // ✅ 現在のセッションを取得
-    const { data: sessionData, error: sessionError } =
-      await supabase.auth.getSession();
-    if (sessionError || !sessionData.session) {
-      return { error: "セッションの取得に失敗しました" };
-    }
-
-    // ✅ プロフィールの名前を更新
+    // プロフィールの名前を更新
     const { error: updateError } = await supabase
       .from("profiles")
       .update({ name: values.name })
       .eq("id", data.user.id);
 
+    // エラーチェック
     if (updateError) {
       return { error: updateError.message };
     }
-
-    return {}; // エラーなし
   } catch (err) {
-    console.error("❌ サインアップ処理エラー:", err);
+    console.error(err);
     return { error: "エラーが発生しました" };
   }
 };
@@ -66,7 +59,7 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
       return { error: error.message };
     }
   } catch (error) {
-    console.error("❌ ログインエラー:", error);
+    console.log(error);
     return { error: "エラーが発生しました" };
   }
 };
