@@ -1,16 +1,34 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
+import { createClient } from "../../../../../utils/supabase/client";
 
 const SignupVerifyPage = () => {
   const router = useRouter();
+  const supabase = createClient();
+  const searchParams = useSearchParams();
+  const code = searchParams.get("code");
 
   useEffect(() => {
-    router.refresh();
-  }, [router]);
+    const verifySession = async () => {
+      if (!code) return;
+
+      // ✅ 認証コードを使ってセッションを更新
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        console.error("❌ セッション更新エラー:", error);
+      } else {
+        console.log("✅ セッション更新成功");
+        router.refresh(); // ページをリロードしてログイン状態を反映
+      }
+    };
+
+    verifySession();
+  }, [router, supabase, code]);
 
   return (
     <div className="w-[500px] bg-white p-5 rounded-xl border">
