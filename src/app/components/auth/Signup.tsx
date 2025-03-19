@@ -57,8 +57,9 @@ const Signup = () => {
           return;
         }
 
-        toast.success("確認メールを送信しました。メールを確認してください");
-        router.push("/signup/verify"); // ✅ `/signup/success` ではなく `/signup/verify` へ遷移
+        toast.success("アカウントを登録しました");
+        router.push("/signup/success");
+        router.refresh();
       } catch (error) {
         console.error(error);
         setError("アカウント登録に失敗しました");
