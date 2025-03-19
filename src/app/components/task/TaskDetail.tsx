@@ -5,6 +5,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import TaskForm from "./TaskForm";
 import { useRouter } from "next/navigation";
+import { createClient } from "../../../../utils/supabase/client";
 
 interface TaskDetailProps {
   detailData: TaskCardTypes | null;
@@ -54,18 +55,40 @@ const TaskDetail = ({ detailData }: TaskDetailProps) => {
   // 🔄 更新処理
   const handleUpdate = async (updatedTask: Partial<TaskCardTypes>) => {
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL}/api/tasks/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedTask),
-        }
-      );
+      const apiUrl =
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/tasks/${id}`.replace(
+          /([^:]\/)\/+/g,
+          "$1"
+        );
+
+      // 🔹 SupabaseのセッションからJWTトークンを取得
+      const supabase = createClient();
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+
+      if (!token) {
+        throw new Error("認証トークンが取得できません");
+      }
+
+      const formattedTask = {
+        ...updatedTask,
+        dueDate: updatedTask.dueDate
+          ? new Date(updatedTask.dueDate).toISOString() // `ISO 8601` に変換
+          : undefined,
+      };
+
+      const res = await fetch(apiUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ 認証トークンを追加
+        },
+        body: JSON.stringify(formattedTask),
+      });
 
       if (!res.ok) {
+        const errorData = await res.json();
+        console.error("❌ 更新エラー詳細:", errorData);
         throw new Error("更新に失敗しました");
       }
 
@@ -80,7 +103,10 @@ const TaskDetail = ({ detailData }: TaskDetailProps) => {
     <div className="w-1/2 m-auto pt-10">
       {isEditing ? (
         <TaskForm
-          initialData={detailData}
+          initialData={{
+            ...detailData,
+            dueDate: parsedDueDate.toISOString().split("T")[0], // `YYYY-MM-DD` 形式に変換
+          }}
           onSubmit={handleUpdate}
           onClose={() => setIsEditing(false)}
         />

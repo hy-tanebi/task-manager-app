@@ -61,7 +61,15 @@ export async function PUT(
   { params }: { params: { tasksId: string } }
 ) {
   const supabase = createClient();
-  const { data, error } = await supabase.auth.getUser();
+  const authHeader = req.headers.get("Authorization");
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const token = authHeader.split(" ")[1];
+  const { data, error } = await supabase.auth.getUser(token);
+
   if (error || !data?.user) {
     return NextResponse.json({ error: "未認証のユーザー" }, { status: 401 });
   }
@@ -70,8 +78,12 @@ export async function PUT(
   const tasksId = parseInt(params.tasksId, 10);
   const updatedData = await req.json();
 
+  // `dueDate` を `Date` 型に変換
+  if (updatedData.dueDate) {
+    updatedData.dueDate = new Date(updatedData.dueDate);
+  }
+
   try {
-    // ✅ ユーザーのタスクのみ更新
     const updatedTask = await prisma.task.update({
       where: { id: tasksId, userId }, // ✅ ユーザーIDでフィルタ
       data: updatedData,
