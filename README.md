@@ -5,7 +5,7 @@ Next.js、Supabase、Prisma を使用し、**認証機能・CRUD 操作・Slack 
 
 ---
 
-##デモ
+## **デモ**
 以下のテスト用ユーザーでログインして機能をお試しいただけます：
 
 ユーザー名: <code>test2@test.com</code><br>
