@@ -5,6 +5,13 @@ Next.js、Supabase、Prisma を使用し、**認証機能・CRUD 操作・Slack 
 
 ---
 
+##デモ
+以下のテスト用ユーザーでログインして機能をお試しいただけます：
+
+ユーザー名: test2@test.com<br>
+パスワード: testuser<br>
+以下のリンクからデプロイされたアプリをお試しいただけます： [Slack連携タスク管理アプリ](https://task-manager-app-8fbh.vercel.app/)<br>
+
 ## **主な機能**
 
 ### **1. 認証機能**
