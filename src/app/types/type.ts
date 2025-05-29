@@ -12,3 +12,9 @@ export interface TaskCardTypes {
   updatedAt: string | Date | null;
   userId: string;
 }
+
+export type AssigneeType = {
+  id: string;
+  name: string;
+  imageUrl?: string;
+};

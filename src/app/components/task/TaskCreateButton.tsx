@@ -1,17 +1,22 @@
 "use client";
+
 import React, { useState } from "react";
 import Modal from "./Modal";
-import TaskForm from "./TaskForm";
+import TaskCreateModal from "./TaskCreateModal";
 import { createClient } from "../../../../utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { sendSlackMessage } from "@/actions/send-slack-message-action";
+import { AssigneeType } from "@/app/types/type";
 
-// ✅ `disabled` プロパティを受け取るためのインターフェース
 interface TaskCreateButtonProps {
+  assignees: AssigneeType[];
   disabled?: boolean;
 }
 
-const TaskCreateButton: React.FC<TaskCreateButtonProps> = ({ disabled }) => {
+const TaskCreateButton: React.FC<TaskCreateButtonProps> = ({
+  assignees,
+  disabled,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -39,7 +44,6 @@ const TaskCreateButton: React.FC<TaskCreateButtonProps> = ({ disabled }) => {
 
       const userId = data.user.id;
 
-      // ✅ Supabase の `userId` から `slackUserId` を取得
       const { data: slackData, error: slackError } = await supabase
         .from("SlackAuth")
         .select("slackUserId")
@@ -66,7 +70,6 @@ const TaskCreateButton: React.FC<TaskCreateButtonProps> = ({ disabled }) => {
         return;
       }
 
-      // ✅ Slack に通知を送信する
       const message = `📌 *新しいタスクが作成されました！*\n📝 *タイトル:* ${values.title}\n⏳ *期限:* ${values.dueDate}\n🔥 *優先度:* ${values.priority}\n👤 *担当者:* ${values.assignee}`;
       await sendSlackMessage({ userId: slackUserId, message });
 
@@ -79,7 +82,6 @@ const TaskCreateButton: React.FC<TaskCreateButtonProps> = ({ disabled }) => {
 
   return (
     <div>
-      {/* 🔹 `disabled` の場合、ボタンを押せないようにする */}
       <button
         onClick={openModal}
         className={`bg-white text-black py-2 px-4 rounded hover:opacity-80 duration-300 ${
@@ -92,7 +94,11 @@ const TaskCreateButton: React.FC<TaskCreateButtonProps> = ({ disabled }) => {
       {isModalOpen && (
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-xl font-bold">タスク作成</h2>
-          <TaskForm onClose={closeModal} onSubmit={handleCreateTask} />
+          <TaskCreateModal
+            onSubmit={handleCreateTask}
+            onClose={closeModal}
+            assignees={assignees}
+          />
         </Modal>
       )}
     </div>

@@ -1,53 +1,47 @@
-import { Suspense } from "react";
+// src/app/page.tsx
 import { createClient } from "../../utils/supabase/server";
-import Loading from "./loading";
-import TaskCardList from "./components/TaskCardList";
+import Image from "next/image";
+import Link from "next/link";
 
 export default async function Home() {
   const supabase = createClient();
+  const { data: assignees, error } = await supabase.from("Assignee").select();
 
-  // 🔹 セッションを取得
-  let { data: session } = await supabase.auth.getSession();
-  const { error: sessionError } = await supabase.auth.getSession(); // error だけを const にする
-
-  if (sessionError) {
-    console.error("⚠️ セッション取得エラー:", sessionError.message);
+  if (error) {
+    console.error("❌ Assignee取得エラー:", error.message);
+    return <p className="text-center">依頼者の取得に失敗しました</p>;
   }
 
-  // 🔹 セッションが無い場合、リフレッシュを試す
-  if (!session || !session.session) {
-    console.log("⚠️ セッションなし → リフレッシュ試行");
-
-    const { data: refreshedSession, error: refreshError } =
-      await supabase.auth.refreshSession();
-
-    if (refreshError) {
-      console.error("🔴 セッションリフレッシュエラー:", refreshError.message);
-      return <p className="text-center">ログインしてください</p>;
-    } else {
-      console.log("✅ セッションリフレッシュ成功:", refreshedSession);
-      session = refreshedSession; // 🔹 ここで再代入
-    }
-  }
-
-  const userId = session.session?.user.id;
-
-  // 🔹 ユーザーごとのタスクを取得
-  const { data: blogData, error } = await supabase
-    .from("Task")
-    .select()
-    .eq("userId", userId) // 🔹 ログインユーザーのタスクのみ取得
-    .order("createdAt");
-
-  if (!blogData || error) {
-    return <p className="text-center">タスクがありません</p>;
+  if (!assignees || assignees.length === 0) {
+    return <p className="text-center">依頼者が登録されていません</p>;
   }
 
   return (
-    <Suspense fallback={<Loading />}>
-      <div className="">
-        <TaskCardList blogData={blogData} />
-      </div>
-    </Suspense>
+    <main className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6">
+      {assignees.map((assignee) => (
+        <div
+          key={assignee.id}
+          className="bg-white rounded-lg shadow-md overflow-hidden"
+        >
+          {assignee.imageUrl && (
+            <Image
+              src={assignee.imageUrl}
+              alt={assignee.name}
+              width={400}
+              height={200}
+              className="w-full h-48 object-cover"
+            />
+          )}
+          <div className="p-4 flex flex-col items-center text-center space-y-2">
+            <h2 className="text-lg font-bold">{assignee.name}</h2>
+            <Link href={`/assignees/${assignee.id}`}>
+              <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                タスクはこちら
+              </button>
+            </Link>
+          </div>
+        </div>
+      ))}
+    </main>
   );
 }

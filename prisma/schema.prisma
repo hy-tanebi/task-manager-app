@@ -8,18 +8,28 @@ datasource db {
 }
 
 model Task {
-  id        Int       @id @default(autoincrement())
-  title     String
-  dueDate   DateTime
-  priority  String
-  status    String    @default("in-progress")
-  assignee  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
-  userId    String
-  content   String?
-  url       String?
-  urlAlias  String?
+  id          Int       @id @default(autoincrement())
+  title       String
+  dueDate     DateTime
+  priority    String
+  status      String    @default("in-progress")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+  userId      String
+  content     String?
+  url         String?
+  urlAlias    String?
+
+  assignee    String     // ✅ 既存のまま残す（表示互換）
+  assigneeId  String?    // ✅ 新：Assignee.id への外部キー
+  assigneeRef Assignee?  @relation(fields: [assigneeId], references: [id])
+}
+
+model Assignee {
+  id        String   @id @default(cuid()) // ランダムな一意ID
+  name      String
+  imageUrl  String?  // 任意画像URL
+  tasks     Task[]   // リレーション（1対多）
 }
 
 model SlackAppConfig {
