@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { AssigneeType } from "@/app/types/type";
 
 export function createClient() {
   const cookieStore = cookies();
@@ -26,4 +27,16 @@ export function createClient() {
       },
     }
   );
+}
+
+export async function getAssignees(): Promise<AssigneeType[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.from("Assignee").select("*");
+
+  if (error) {
+    console.error("❌ Assignee取得エラー:", error.message);
+    return [];
+  }
+
+  return data ?? [];
 }

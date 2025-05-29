@@ -1,6 +1,6 @@
 "use client";
 
-import { TaskCardTypes } from "@/app/types/type";
+import { TaskCardTypes, AssigneeType } from "@/app/types/type";
 import Link from "next/link";
 import React, { useState } from "react";
 import TaskForm from "./TaskForm";
@@ -9,9 +9,10 @@ import { createClient } from "../../../../utils/supabase/client";
 
 interface TaskDetailProps {
   detailData: TaskCardTypes | null;
+  assignees: AssigneeType[];
 }
 
-const TaskDetail = ({ detailData }: TaskDetailProps) => {
+const TaskDetail = ({ detailData, assignees }: TaskDetailProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
   console.log("🟢 detailData の中身:", detailData);
@@ -109,6 +110,7 @@ const TaskDetail = ({ detailData }: TaskDetailProps) => {
           }}
           onSubmit={handleUpdate}
           onClose={() => setIsEditing(false)}
+          assignees={assignees}
         />
       ) : (
         <>

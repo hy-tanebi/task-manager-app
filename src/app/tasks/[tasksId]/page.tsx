@@ -1,6 +1,6 @@
 import TaskDetail from "@/app/components/task/TaskDetail";
-import { TaskCardTypes } from "@/app/types/type";
-import { createClient } from "../../../../utils/supabase/server";
+import { TaskCardTypes, AssigneeType } from "@/app/types/type";
+import { createClient, getAssignees } from "../../../../utils/supabase/server";
 
 async function getDetailPage(id: number): Promise<TaskCardTypes | null> {
   const apiUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -11,7 +11,6 @@ async function getDetailPage(id: number): Promise<TaskCardTypes | null> {
     return null;
   }
 
-  // ✅ Supabaseのセッションを取得
   const supabase = createClient();
   const {
     data: { session },
@@ -22,9 +21,6 @@ async function getDetailPage(id: number): Promise<TaskCardTypes | null> {
     return null;
   }
 
-  console.log("🟢 認証トークン:", session.access_token);
-
-  // ✅ `Authorization` ヘッダーを追加
   const res = await fetch(`${apiUrl}/api/tasks/${id}`, {
     cache: "no-store",
     headers: {
@@ -40,7 +36,6 @@ async function getDetailPage(id: number): Promise<TaskCardTypes | null> {
 
   try {
     const detailData: TaskCardTypes = await res.json();
-    console.log("🟢 取得したタスク:", detailData);
     return detailData;
   } catch (error) {
     console.error("❌ JSON パースエラー:", error);
@@ -56,8 +51,9 @@ const DetailTaskPage = async ({ params }: { params: { tasksId: string } }) => {
   }
 
   const detailData = await getDetailPage(taskId);
+  const assignees: AssigneeType[] = await getAssignees(); // 🔽 assigneesを取得して渡す
 
-  return <TaskDetail detailData={detailData} />;
+  return <TaskDetail detailData={detailData} assignees={assignees} />;
 };
 
 export default DetailTaskPage;

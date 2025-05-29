@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,39 +21,40 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { TaskCardTypes } from "@/app/types/type";
+import { TaskCardTypes, AssigneeType } from "@/app/types/type";
 
 interface TaskFormProps {
-  initialData?: TaskCardTypes; // 既存データ（編集時のみ）
-  onSubmit: (values: z.infer<typeof formSchema>) => void; // 修正 // 作成 or 編集の処理を渡す
+  initialData?: TaskCardTypes;
+  onSubmit: (values: z.infer<typeof formSchema>) => void;
   onClose?: () => void;
+  assignees: AssigneeType[];
 }
 
 const formSchema = z.object({
   title: z.string().min(2, { message: "タイトルは2文字以上" }),
   dueDate: z.string().min(1, { message: "期日を入力してください" }),
   priority: z.string(),
-  assignee: z.string().min(1, { message: "依頼者を入力してください" }),
+  assignee: z.string().min(1, { message: "依頼者を選択してください" }),
   content: z.string().optional(),
   url: z.string().url({ message: "正しいURLを入力してください" }).optional(),
   urlAlias: z.string().optional(),
 });
 
-const TaskForm = ({ initialData, onSubmit }: TaskFormProps) => {
+const TaskForm = ({ initialData, onSubmit, assignees }: TaskFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData
       ? {
           title: initialData.title,
           dueDate:
-            initialData.dueDate instanceof Date
-              ? initialData.dueDate.toISOString().split("T")[0]
-              : initialData.dueDate || "",
+            typeof initialData.dueDate === "string"
+              ? initialData.dueDate
+              : initialData.dueDate.toISOString().split("T")[0],
           priority: initialData.priority,
           assignee: initialData.assignee,
-          content: initialData.content ?? undefined,
-          url: initialData.url ?? undefined,
-          urlAlias: initialData.urlAlias ?? undefined,
+          content: initialData.content ?? "", // null → 空文字 or undefined
+          url: initialData.url ?? "",
+          urlAlias: initialData.urlAlias ?? "",
         }
       : {
           title: "",
@@ -71,6 +73,7 @@ const TaskForm = ({ initialData, onSubmit }: TaskFormProps) => {
     <div className="pt-4">
       <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* 各フィールド */}
           <FormField
             control={control}
             name="title"
@@ -91,7 +94,7 @@ const TaskForm = ({ initialData, onSubmit }: TaskFormProps) => {
               <FormItem>
                 <FormLabel>課題URL</FormLabel>
                 <FormControl>
-                  <Input placeholder="url" {...field} />
+                  <Input placeholder="https://example.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -117,14 +120,14 @@ const TaskForm = ({ initialData, onSubmit }: TaskFormProps) => {
               <FormItem>
                 <FormLabel>期日</FormLabel>
                 <FormControl>
-                  <Input type="date" placeholder="期日" {...field} />
+                  <Input type="date" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           <FormField
-            control={form.control}
+            control={control}
             name="priority"
             render={({ field }) => (
               <FormItem>
@@ -132,7 +135,7 @@ const TaskForm = ({ initialData, onSubmit }: TaskFormProps) => {
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="優先度" />
+                      <SelectValue placeholder="優先度を選択" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -152,7 +155,7 @@ const TaskForm = ({ initialData, onSubmit }: TaskFormProps) => {
               <FormItem>
                 <FormLabel>備考</FormLabel>
                 <FormControl>
-                  <Input placeholder="" {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -165,7 +168,19 @@ const TaskForm = ({ initialData, onSubmit }: TaskFormProps) => {
               <FormItem>
                 <FormLabel>依頼者</FormLabel>
                 <FormControl>
-                  <Input placeholder="依頼者を入力" {...field} />
+                  <select
+                    {...field}
+                    className="w-full border border-gray-300 rounded px-2 py-1"
+                  >
+                    <option value="" disabled>
+                      -- 依頼者を選んでください --
+                    </option>
+                    {assignees?.map((assignee) => (
+                      <option key={assignee.id} value={assignee.name}>
+                        {assignee.name}
+                      </option>
+                    ))}
+                  </select>
                 </FormControl>
                 <FormMessage />
               </FormItem>

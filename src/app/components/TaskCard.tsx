@@ -54,9 +54,9 @@ const TaskCard = ({ blog }: TaskCardProps) => {
 
   return (
     <div>
-      <Card className="min-h-[270px]">
+      <Card className="h-full flex flex-col justify-between">
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle className="leading-tight">{title}</CardTitle>
           <CardDescription>
             <p className="pt-2 pb-4">
               作成日：
@@ -67,7 +67,7 @@ const TaskCard = ({ blog }: TaskCardProps) => {
             </p>
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-2 flex-1">
           <div>
             <span className="font-bold">課題URL</span>：
             {url && (
